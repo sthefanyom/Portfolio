@@ -19,30 +19,28 @@ export class AuthService {
       throw new UnauthorizedException('Email não encontrado');
     }
 
-    // Compara senha fornecida com a senha criptografada
     const passwordMatch = await bcrypt.compare(password, user.password);
 
     if (!passwordMatch) {
       throw new UnauthorizedException('Senha incorreta');
     }
 
-    // Retorna o usuário sem a senha
-    const { password: _, ...result } = user.toObject();
+    // Remove a senha antes de retornar
+    const { password: _, ...result } = user;
+
     return result;
   }
 
-  // Gera um token JWT para o usuário
+  // Gera token JWT
   async login(email: string, password: string) {
     const user = await this.validateUser(email, password);
 
-    // Payload que ficará dentro do token
     const payload = {
-      sub: user._id,
+      sub: user.id, // Para TypeORM é id
       email: user.email,
       isAdmin: user.isAdmin,
     };
 
-    // Retorna token + dados do usuário
     return {
       access_token: this.jwtService.sign(payload),
       user,
